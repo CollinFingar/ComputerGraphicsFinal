@@ -37,6 +37,66 @@ function render() {
     requestAnimFrame( render );
 }
 
+var generateGeoMetadata = function(arrVertex, arrIndex, stride){
+
+    // Four Vertices
+    var vertexPackets = [];
+    var normalsArray = [];
+    var VERT_ARRAY_TYPE = -1;
+
+    if ((typeof arrVertex[1]) == "number") { VERT_ARRAY_TYPE = 0; }
+    else if ((typeof arrVertex[1]) == "object" && arrVertex[1].length == 3 ) { VERT_ARRAY_TYPE = 1; }
+    else { 
+        alert("vertex array error");
+        return -1;
+    }
+
+
+    // Calculate the vertices
+    switch(VERT_ARRAY_TYPE){
+        case 0: {
+            for ( int i = 0; i < arrVertex.length; i += 3 ){
+                var p1  = vec4(parseFloat(arrVertex[i]), parseFloat(arrVertex[i+1]), parseFloat(arrVertex[i+2]), 1);
+                vertexPackets.push(p1);
+            }
+
+            break;
+        }
+        case 1: {
+            for ( int i = 0; i < arrVertex.length; i++ ){
+                var p1  = vec4(arrVertex[i]);
+                vertexPackets.push(p1);
+            }
+
+            break;
+
+        }
+    }
+        
+    for(var i = 0; i < arrVertex.length; i +=3 ){
+        // Calculate the normals
+
+        var np1  = vec4(parseFloat(arr1[i]), parseFloat(arr1[i+1]), parseFloat(arr1[i+2]), 1);
+        var np2 = vec4(parseFloat(arr1[i+3]), parseFloat(arr1[i+4]), parseFloat(arr1[i+5]), 1);
+        var np3 = vec4(parseFloat(arr1[i+6]), parseFloat(arr1[i+7]), parseFloat(arr1[i+8]), 1);
+
+        var v = subtract(np2, np1);
+        var w = subtract(np3, np1);
+        var normal = cross(v, w);
+        normal = vec3(normalize(normal));
+
+        normalsArray.push(normal);
+        normalsArray.push(normal);
+        normalsArray.push(normal);
+
+        return {
+            vertices: arrVertex;
+            normals: normalsArray;
+        }
+        console.log(normal);
+
+}
+
 function initialize(){
 
     arr1 = vertexArray;
