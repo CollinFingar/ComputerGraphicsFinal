@@ -19,8 +19,8 @@ function init() {
 
 
     camera = new THREE.PerspectiveCamera(45, WIDTH/HEIGHT, .1, 20000);
-    camera.position.set(0,2,10);
-    camera.rotation.x = -.3;
+    camera.position.set(0,1.8,10);
+    camera.rotation.x = -.4;
     scene.add(camera);
 
     window.addEventListener('resize', function() {
