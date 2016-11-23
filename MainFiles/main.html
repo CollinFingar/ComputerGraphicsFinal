@@ -19,8 +19,8 @@ Seretsi Khabane Lekena
 
 
 <script id="vertex-shader" type="x-shader/x-vertex">
-attribute vec4 vPosition;
 attribute vec3 vNormal;
+attribute vec4 vPosition;
 uniform mat4 u_matrix;
 
 uniform vec3 theta;
@@ -51,7 +51,7 @@ main()
 
     gl_Position = rz * ry * rx * vPosition;
     float r = (gl_Position.z + 1.0)/2.0;
-    v_color = vec4(vNormal, 1);
+    v_color = vec4(vPosition.x*0.5 + 0.1, vPosition.y*0.5 + 0.1, vPosition.z*0.5 + 0.1, 1);
 }
 
 </script>
@@ -70,7 +70,8 @@ main()
 <script type="text/javascript" src="../COMMON/webgl-utils.js"></script>
 <script type="text/javascript" src="../COMMON/initShaders.js"></script>
 <script type="text/javascript" src="../COMMON/MV.js"></script>
-<script type="text/javascript" src="ship.js"></script>
+<script type="text/javascript" src="_main.js"></script>
+<!-- <script type="text/javascript" src="ship.js"></script> -->
 </head>
 
 <body>
