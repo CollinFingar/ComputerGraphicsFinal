@@ -51,7 +51,9 @@ function buildPlanes(){
     var waterMaterial = new THREE.MeshPhongMaterial({
         vertexColors: THREE.FaceColors,
         color: 0x4444ff,
-        shading: THREE.SmoothShading
+        shading: THREE.SmoothShading,
+        transparent: true,
+        opacity: .9
     });
     waterMesh = new THREE.Mesh(waterSurface, waterMaterial);
     waterMesh.rotation.x = Math.PI * -.5;
