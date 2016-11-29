@@ -31,6 +31,8 @@ function init() {
         camera.updateProjectionMatrix();
     });
 
+    buildSkyBox("skybox1.jpg");
+
     buildLight();
     
     buildPlanes();
@@ -38,6 +40,22 @@ function init() {
 
 }
 
+function buildSkyBox(file){
+    var skyGeo = new THREE.CubeGeometry(500, 500, 500);
+    var matFacesArray = [];
+
+    for (var i = 0; i < 6; i++){
+        matFacesArray.push(new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture(file),
+            side: THREE.BackSide
+        }));
+    }
+
+    var sky = new THREE.MeshFaceMaterial (matFacesArray);
+    var skyBox = new THREE.Mesh(skyGeo, sky );
+    scene.add ( skyBox );
+
+}
 function buildLight(){
     renderer.setClearColor(new THREE.Color(0, 0, .3));
 
