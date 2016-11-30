@@ -43,10 +43,12 @@ function init() {
 function buildSkyBox(file){
     var skyGeo = new THREE.CubeGeometry(500, 500, 500);
     var matFacesArray = [];
+    var skyboxTexture = new THREE.TextureLoader().load( file );;
+    //skyboxTexture.mapping = THREE.CubeReflectionMapping;
 
     for (var i = 0; i < 6; i++){
         matFacesArray.push(new THREE.MeshBasicMaterial({
-            map: THREE.ImageUtils.loadTexture(file),
+            map: skyboxTexture,
             side: THREE.BackSide
         }));
     }
