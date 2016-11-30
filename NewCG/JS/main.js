@@ -24,7 +24,7 @@ function init() {
 
     camera = new THREE.PerspectiveCamera(45, WIDTH/HEIGHT, .1, 20000);
     camera.position.set(0,1.8,10);
-    camera.rotation.x = -0.4;    
+    camera.rotation.x = -0.4;
     scene.add(camera);
 
     window.addEventListener('resize', function() {
@@ -45,19 +45,22 @@ function init() {
 function buildLight(){
     renderer.setClearColor(new THREE.Color(0, 0, .3));
 
-    var light = new THREE.PointLight(0xffffff);
-    light.position.set(-10,20,10);
+    var light = new THREE.PointLight(0xffffff, 1);
+    light.position.set(0,5,0);
+    light.rotation.x = Math.PI/2;
+    light.castShadow = true;
+    light.target = camera;
     scene.add(light);
 }
 
 function buildPlanes(){
     waterSurface = new THREE.PlaneGeometry(6,6,150,150);
     var waterMaterial = new THREE.MeshPhongMaterial({
-        vertexColors: THREE.FaceColors,
+        vertexColors: THREE.VertexColors,
         color: 0x4444ff,
         shading: THREE.SmoothShading,
         transparent: true,
-        opacity: .9
+        opacity: .7
     });
 
     waterMesh = new THREE.Mesh(waterSurface, waterMaterial);
@@ -77,13 +80,13 @@ function buildPlanes(){
         // load a texture, set wrap mode to repeat
         var pool_wall_texture = new THREE.TextureLoader().load( "pool_wall_texture2.jpg" );
         pool_wall_texture.mapping = THREE.UVMapping;
-        pool_wall_texture.anisotropic = 
+        pool_wall_texture.anisotropic =
         pool_wall_texture.wrapS = THREE.RepeatWrapping;
         pool_wall_texture.wrapT = THREE.RepeatWrapping;
         pool_wall_texture.repeat.set( 2, 2 );
-    
+
     poolBottom = new THREE.PlaneGeometry(6,6,25,25);
-    
+
     var bottomMaterial = new THREE.MeshPhongMaterial({
         map: pool_texture,
         // vertexColors: THREE.FaceColors,
@@ -125,6 +128,7 @@ function updateWaves(){
     var delta = clock.getDelta();
     var vertices = waterMesh.geometry.vertices;
     var faces = waterMesh.geometry.faces;
+
     for(var i = 0; i < vertices.length; i++){
         var scale = .7;
         var smallScale = 5;
@@ -137,13 +141,13 @@ function updateWaves(){
 
         var value = z/10 + zz/60;
 
-        vertices[i].z = value;
+        waterMesh.geometry.vertices[i].z = value;
 
         var colorValue = value*5 + .5;
-        //waterMesh.geometry.faces[i].color.setRGB(colorValue, colorValue, colorValue);
     }
     waterMesh.geometry.verticesNeedUpdate = true;
-    waterMesh.geometry.colorsNeedUpdate = true;
+    waterMesh.geometry.computeFaceNormals();
+    waterMesh.geometry.computeVertexNormals();
 }
 
 function animate() {
