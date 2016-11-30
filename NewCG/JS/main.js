@@ -24,7 +24,7 @@ function init() {
 
     camera = new THREE.PerspectiveCamera(45, WIDTH/HEIGHT, .1, 20000);
     camera.position.set(0,1.8,10);
-    camera.rotation.x = -.4;
+    camera.rotation.x = -0.4;    
     scene.add(camera);
 
     window.addEventListener('resize', function() {
@@ -59,18 +59,38 @@ function buildPlanes(){
         transparent: true,
         opacity: .9
     });
+
     waterMesh = new THREE.Mesh(waterSurface, waterMaterial);
     waterMesh.rotation.x = Math.PI * -.5;
     waterMesh.rotation.z = Math.PI * -.25;
     waterMesh.position.y = -1.25;
     scene.add(waterMesh);
 
+    // load a texture, set wrap mode to repeat
+    var pool_texture = new THREE.TextureLoader().load( "pool_texture.jpg" );
+    pool_texture.mapping = THREE.UVMapping;
+    pool_texture.wrapS = THREE.RepeatWrapping;
+    pool_texture.wrapT = THREE.RepeatWrapping;
+    pool_texture.repeat.set( 4, 4 );
+
+    /*FIXME*/
+        // load a texture, set wrap mode to repeat
+        var pool_wall_texture = new THREE.TextureLoader().load( "pool_wall_texture2.jpg" );
+        pool_wall_texture.mapping = THREE.UVMapping;
+        pool_wall_texture.anisotropic = 
+        pool_wall_texture.wrapS = THREE.RepeatWrapping;
+        pool_wall_texture.wrapT = THREE.RepeatWrapping;
+        pool_wall_texture.repeat.set( 2, 2 );
+    
     poolBottom = new THREE.PlaneGeometry(6,6,25,25);
+    
     var bottomMaterial = new THREE.MeshPhongMaterial({
-        vertexColors: THREE.FaceColors,
-        color: 0xAAAAAA,
+        map: pool_texture,
+        // vertexColors: THREE.FaceColors,
+        // color: 0xAAAAAA,
         shading: THREE.SmoothShading
     });
+
     poolBottomMesh = new THREE.Mesh(poolBottom, bottomMaterial);
     poolBottomMesh.rotation.x = Math.PI * -.5;
     poolBottomMesh.rotation.z = Math.PI * -.25;
@@ -80,10 +100,12 @@ function buildPlanes(){
     poolWall1 = new THREE.PlaneGeometry(1.5,6,5,25);
     poolWall2 = new THREE.PlaneGeometry(1.5,6,25,5);
     var wallMaterial = new THREE.MeshPhongMaterial({
-        vertexColors: THREE.FaceColors,
-        color: 0x888888,
+        map: pool_wall_texture,
+        // vertexColors: THREE.FaceColors,
+        // color: 0x888888,
         shading: THREE.SmoothShading
     });
+
     poolWall1Mesh = new THREE.Mesh(poolWall1, wallMaterial);
     poolWall2Mesh = new THREE.Mesh(poolWall2, wallMaterial);
     poolWall1Mesh.rotation.z = Math.PI * -.5;
