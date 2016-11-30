@@ -6,6 +6,7 @@ var poolWall1, poolWall1Mesh;
 var poolWall2, poolWall2Mesh;
 var sn;
 var clock;
+var waterCamera;
 
 init();
 animate();
@@ -74,13 +75,20 @@ function buildLight(){
 }
 
 function buildPlanes(){
-    waterSurface = new THREE.PlaneGeometry(6,6,150,150);
+
+    waterCamera = new THREE.CubeCamera(1, 5000, 1024);
+    waterCamera.position.set(0,10,0);
+    scene.add(waterCamera);
+
+    waterSurface = new THREE.PlaneGeometry(6,6,100,100);
     var waterMaterial = new THREE.MeshPhongMaterial({
         vertexColors: THREE.VertexColors,
-        color: 0x4444ff,
+        color: 0xffffff,
         shading: THREE.SmoothShading,
         transparent: true,
-        opacity: .7
+        opacity: .7,
+        emissive: 0x111111,
+        envMap: waterCamera.renderTarget.texture
     });
 
     waterMesh = new THREE.Mesh(waterSurface, waterMaterial);
@@ -88,6 +96,8 @@ function buildPlanes(){
     waterMesh.rotation.z = Math.PI * -.25;
     waterMesh.position.y = -1.25;
     scene.add(waterMesh);
+
+    waterCamera.position = waterMesh.position;
 
     // load a texture, set wrap mode to repeat
     var pool_texture = new THREE.TextureLoader().load( "pool_texture.jpg" );
@@ -168,12 +178,14 @@ function updateWaves(){
     waterMesh.geometry.verticesNeedUpdate = true;
     waterMesh.geometry.computeFaceNormals();
     waterMesh.geometry.computeVertexNormals();
+
+    waterCamera.updateCubeMap(renderer, scene);
 }
 
 function animate() {
     setTimeout( function(){
         requestAnimationFrame(animate);
-    }, 1000/60);
+    }, 1000/30);
 
     updateWaves();
 
