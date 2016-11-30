@@ -4,11 +4,14 @@ var waterSurface, waterMesh;
 var poolBottom, poolBottomMesh;
 var poolWall1, poolWall1Mesh;
 var poolWall2, poolWall2Mesh;
+var sn;
+var clock;
 
 init();
 animate();
 
 function init() {
+    sn = new SimplexNoise();
     scene = new THREE.Scene();
     var WIDTH = window.innerWidth,
         HEIGHT = window.innerHeight;
@@ -17,6 +20,7 @@ function init() {
     renderer.setSize(WIDTH, HEIGHT);
     document.body.appendChild(renderer.domElement);
 
+    clock = new THREE.Clock();
 
     camera = new THREE.PerspectiveCamera(45, WIDTH/HEIGHT, .1, 20000);
     camera.position.set(0,1.8,10);
@@ -34,9 +38,9 @@ function init() {
     buildSkyBox("skybox1.jpg");
 
     buildLight();
-    
+
     buildPlanes();
-    
+
 
 }
 
@@ -67,7 +71,7 @@ function buildLight(){
 }
 
 function buildPlanes(){
-    waterSurface = new THREE.PlaneGeometry(6,6,50,50);
+    waterSurface = new THREE.PlaneGeometry(6,6,150,150);
     var waterMaterial = new THREE.MeshPhongMaterial({
         vertexColors: THREE.FaceColors,
         color: 0x4444ff,
@@ -132,12 +136,42 @@ function buildPlanes(){
     poolWall1Mesh.position.set(2.1,-1.75,-2.1);
     poolWall2Mesh.position.set(-2.1,-1.75,-2.1);
     scene.add(poolWall1Mesh);
-    scene.add(poolWall2Mesh);
+    scene.add(poolWall2Mesh)
+
+    waterMesh.geometry.dynamic = true;
+}
+
+function updateWaves(){
+    var delta = clock.getDelta();
+    var vertices = waterMesh.geometry.vertices;
+    var faces = waterMesh.geometry.faces;
+    for(var i = 0; i < vertices.length; i++){
+        var scale = .7;
+        var smallScale = 5;
+        var inverseScale = .1;
+        var waveSpeed = .6;
+
+        var z = sn.noise3d(vertices[i].x*scale, vertices[i].y*scale, waveSpeed * clock.getElapsedTime());
+
+        var zz = sn.noise3d(vertices[i].y*smallScale, vertices[i].x*smallScale, waveSpeed * clock.getElapsedTime());
+
+        var value = z/10 + zz/60;
+
+        vertices[i].z = value;
+
+        var colorValue = value*5 + .5;
+        //waterMesh.geometry.faces[i].color.setRGB(colorValue, colorValue, colorValue);
+    }
+    waterMesh.geometry.verticesNeedUpdate = true;
+    waterMesh.geometry.colorsNeedUpdate = true;
 }
 
 function animate() {
-    requestAnimationFrame(animate);
+    setTimeout( function(){
+        requestAnimationFrame(animate);
+    }, 1000/60);
 
+    updateWaves();
 
     renderer.render(scene, camera);
 }
