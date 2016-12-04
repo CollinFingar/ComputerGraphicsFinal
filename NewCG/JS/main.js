@@ -8,14 +8,21 @@ var sn;
 var clock;
 var waterCamera;
 
+var waveDensity = .2;
+var choppiness = 4;
+var waveSize = .15;
+var choppinessSize = .07;
+var waveSpeed = .7;
+
+
 init();
 animate();
 
 function init() {
     sn = new SimplexNoise();
     scene = new THREE.Scene();
-    var WIDTH = window.innerWidth,
-        HEIGHT = window.innerHeight;
+    var WIDTH = window.innerWidth - 25,
+        HEIGHT = window.innerHeight - 68;
 
     renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(WIDTH, HEIGHT);
@@ -29,14 +36,15 @@ function init() {
     scene.add(camera);
 
     window.addEventListener('resize', function() {
-        var WIDTH = window.innerWidth,
-            HEIGHT = window.innerHeight;
+        var WIDTH = window.innerWidth - 25,
+            HEIGHT = window.innerHeight - 68;
         renderer.setSize(WIDTH, HEIGHT);
         camera.aspect = WIDTH / HEIGHT;
         camera.updateProjectionMatrix();
     });
 
-    buildSkyBox("skybox1.jpg");
+    //buildSkyBox("skybox1.jpg");
+    buildSkyBox2();
 
     buildLight();
 
@@ -63,38 +71,58 @@ function buildSkyBox(file){
     scene.add ( skyBox );
 
 }
+
+function buildSkyBox2(){
+    //skyboxTexture.mapping = THREE.CubeReflectionMapping;
+    var urls = [
+        "IMAGES/Skybox/Left.png", "IMAGES/Skybox/Right.png",
+        "IMAGES/Skybox/Up.png", "IMAGES/Skybox/Down.png",
+        "IMAGES/Skybox/Front.png", "IMAGES/Skybox/Back.png"
+    ];
+
+    var reflectionCube = new THREE.CubeTextureLoader().load( urls );
+	reflectionCube.format = THREE.RGBFormat;
+
+	scene.background = reflectionCube;
+
+}
+
 function buildLight(){
     renderer.setClearColor(new THREE.Color(0, 0, .3));
 
-    var light = new THREE.PointLight(0xffffff, 1);
-    light.position.set(0,5,0);
+    var light = new THREE.DirectionalLight(0xffffff, .9);
+    light.position.set(0,16,15);
     light.rotation.x = Math.PI/2;
     light.castShadow = true;
     light.target = camera;
     scene.add(light);
+
+    scene.fog = new THREE.Fog(0xffffff, 30, 60);
 }
 
 function buildPlanes(){
 
-    waterCamera = new THREE.CubeCamera(1, 5000, 1024);
-    waterCamera.position.set(0,10,0);
+    waterCamera = new THREE.CubeCamera(1, 10, 256);
+    waterCamera.position.set(0,-4.25,0);
     scene.add(waterCamera);
 
-    waterSurface = new THREE.PlaneGeometry(6,6,100,100);
+    waterSurface = new THREE.PlaneGeometry(80, 80, 250, 250);
     var waterMaterial = new THREE.MeshPhongMaterial({
         vertexColors: THREE.VertexColors,
         color: 0xffffff,
         shading: THREE.SmoothShading,
         transparent: true,
-        opacity: .7,
+        opacity: .75,
+        reflectivity: 1.1,
         emissive: 0x111111,
         envMap: waterCamera.renderTarget.texture
     });
 
     waterMesh = new THREE.Mesh(waterSurface, waterMaterial);
     waterMesh.rotation.x = Math.PI * -.5;
-    waterMesh.rotation.z = Math.PI * -.25;
-    waterMesh.position.y = -1.25;
+    //waterMesh.rotation.z = Math.PI * -.25;
+    waterMesh.position.y = -4.25;
+    waterMesh.position.z = -20;
     scene.add(waterMesh);
 
     waterCamera.position = waterMesh.position;
@@ -115,7 +143,7 @@ function buildPlanes(){
         pool_wall_texture.wrapT = THREE.RepeatWrapping;
         pool_wall_texture.repeat.set( 2, 2 );
 
-    poolBottom = new THREE.PlaneGeometry(6,6,25,25);
+    poolBottom = new THREE.PlaneGeometry(7.5,7.5,25,25);
 
     var bottomMaterial = new THREE.MeshPhongMaterial({
         map: pool_texture,
@@ -128,10 +156,10 @@ function buildPlanes(){
     poolBottomMesh.rotation.x = Math.PI * -.5;
     poolBottomMesh.rotation.z = Math.PI * -.25;
     poolBottomMesh.position.y = -2.5;
-    scene.add(poolBottomMesh);
+    //scene.add(poolBottomMesh);
 
-    poolWall1 = new THREE.PlaneGeometry(1.5,6,5,25);
-    poolWall2 = new THREE.PlaneGeometry(1.5,6,25,5);
+    poolWall1 = new THREE.PlaneGeometry(1.5,7.5,5,25);
+    poolWall2 = new THREE.PlaneGeometry(1.5,7.5,25,5);
     var wallMaterial = new THREE.MeshPhongMaterial({
         map: pool_wall_texture,
         // vertexColors: THREE.FaceColors,
@@ -146,34 +174,31 @@ function buildPlanes(){
     poolWall2Mesh.rotation.z = Math.PI * -.5;
     poolWall2Mesh.rotation.y = Math.PI * .25;
 
-    poolWall1Mesh.position.set(2.1,-1.75,-2.1);
-    poolWall2Mesh.position.set(-2.1,-1.75,-2.1);
-    scene.add(poolWall1Mesh);
-    scene.add(poolWall2Mesh)
+    poolWall1Mesh.position.set(2.65,-1.75,-2.65);
+    poolWall2Mesh.position.set(-2.65,-1.75,-2.65);
+    //scene.add(poolWall1Mesh);
+    //scene.add(poolWall2Mesh)
 
     waterMesh.geometry.dynamic = true;
 }
 
 function updateWaves(){
+    updateValues();
+
     var delta = clock.getDelta();
     var vertices = waterMesh.geometry.vertices;
     var faces = waterMesh.geometry.faces;
 
     for(var i = 0; i < vertices.length; i++){
-        var scale = .7;
-        var smallScale = 5;
-        var inverseScale = .1;
-        var waveSpeed = .6;
 
-        var z = sn.noise3d(vertices[i].x*scale, vertices[i].y*scale, waveSpeed * clock.getElapsedTime());
+        var z = sn.noise3d(vertices[i].x*waveDensity, vertices[i].y*waveDensity, waveSpeed * clock.getElapsedTime());
 
-        var zz = sn.noise3d(vertices[i].y*smallScale, vertices[i].x*smallScale, waveSpeed * clock.getElapsedTime());
+        var zz = sn.noise3d(vertices[i].y*choppiness, vertices[i].x*choppiness, waveSpeed * clock.getElapsedTime());
 
-        var value = z/10 + zz/60;
+        var value = z*waveSize + zz*choppinessSize;
 
         waterMesh.geometry.vertices[i].z = value;
 
-        var colorValue = value*5 + .5;
     }
     waterMesh.geometry.verticesNeedUpdate = true;
     waterMesh.geometry.computeFaceNormals();
@@ -182,10 +207,17 @@ function updateWaves(){
     waterCamera.updateCubeMap(renderer, scene);
 }
 
+function updateValues(){
+    waveSize = document.getElementById("waveSizeRange").value;
+    waveDensity = document.getElementById("waveDensityRange").value;
+    choppinessSize = document.getElementById("choppinessRange").value;
+    waveSpeed = document.getElementById("waveSpeedRange").value;
+}
+
 function animate() {
     setTimeout( function(){
         requestAnimationFrame(animate);
-    }, 1000/30);
+    }, 1000/45);
 
     updateWaves();
 
